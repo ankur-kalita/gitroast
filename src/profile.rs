@@ -22,6 +22,9 @@ pub struct Repo {
     pub fork: bool,
     pub stargazers_count: u32,
     pub pushed_at: Option<String>,
+    /// Kilobytes; 0 means nothing was ever pushed.
+    #[serde(default)]
+    pub size: u32,
 }
 
 /// Everything the roast rules need, plus "today" so the rules never read a clock.

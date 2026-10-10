@@ -45,6 +45,9 @@ const LAZY_NAMES: &[&str] = &[
     "myapp",
     "hello-world",
 ];
+const PANIC_WORDS: &[&str] = &[
+    "final", "v2", "v3", "copy", "backup", "old", "new", "latest", "fixed", "working",
+];
 const BUZZWORDS: &[&str] = &[
     "passionate",
     "aspiring",
@@ -70,6 +73,10 @@ const RULES: &[Rule] = &[
     bio,
     one_language,
     slow_starter,
+    empty_repos,
+    final_final_v2,
+    dormant,
+    follower_drought,
 ];
 
 pub fn judge(profile: &Profile) -> Verdict {
@@ -85,11 +92,11 @@ pub fn judge(profile: &Profile) -> Verdict {
 
 fn summary(score: u32) -> &'static str {
     match score {
-        9..=10 => "Annoyingly solid. Nothing much to roast.",
-        7..=8 => "Decent. A few skeletons in the repo closet.",
-        5..=6 => "Mid. Recruiters will scroll past politely.",
-        3..=4 => "Rough. This profile needs a weekend of cleanup.",
-        _ => "A crime scene. GitHub should send a welfare check.",
+        9..=10 => "Annoyingly solid. Go touch grass, we'll find something next time.",
+        7..=8 => "Decent. That's the nicest insult I have.",
+        5..=6 => "Painfully mid. Recruiters open this tab and close it in four seconds.",
+        3..=4 => "Rough. This profile is the reason companies ask for LeetCode.",
+        _ => "A crime scene. Delete the account and start a new life under a new username.",
     }
 }
 
@@ -113,7 +120,9 @@ fn ghost(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        "Zero original repos. A ghost with a GitHub account.".into(),
+        "Zero original repos. You made an account just to watch other people code. A ghost with \
+         less personality."
+            .into(),
         5,
     )
 }
@@ -132,8 +141,8 @@ fn missing_descriptions(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("{empty} of {total} repos have no description. Mysterious. Or lazy."),
-        1,
+        format!("{empty} of {total} repos have no description. Not even you know what they do."),
+        2,
     )
 }
 
@@ -148,8 +157,11 @@ fn tutorial_projects(p: &Profile) -> Option<Burn> {
     }
     let names = examples(p.own_repos().filter(is_tutorial));
     burn(
-        format!("{count} tutorial projects ({names}). The YouTube pipeline is strong here."),
-        2,
+        format!(
+            "{count} tutorial projects ({names}). You didn't build these, you transcribed a \
+             YouTube video at 1.5x speed."
+        ),
+        3,
     )
 }
 
@@ -160,8 +172,8 @@ fn lazy_names(p: &Profile) -> Option<Burn> {
     }
     let names = examples(p.own_repos().filter(is_lazy));
     burn(
-        format!("Repos named {names}. Naming things is hard, apparently."),
-        1,
+        format!("Repos named {names}. Your creativity peaked at the signup page."),
+        2,
     )
 }
 
@@ -180,7 +192,10 @@ fn graveyard(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("{dead} repos untouched for over a year. A graveyard with READMEs."),
+        format!(
+            "{dead} repos untouched for over a year. This isn't a portfolio, it's a cemetery \
+             with a search bar."
+        ),
         2,
     )
 }
@@ -192,8 +207,8 @@ fn zero_stars(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("{total} repos, 0 stars in total. Not even your mum."),
-        1,
+        format!("{total} repos, 0 stars in total. Not even your mum, and she promised she'd look."),
+        2,
     )
 }
 
@@ -204,7 +219,9 @@ fn fork_collector(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("{forks} forks vs {own} originals. A collector, not a creator."),
+        format!(
+            "{forks} forks vs {own} originals. Pressing 'Fork' is a bookmark, not a contribution."
+        ),
         1,
     )
 }
@@ -215,7 +232,10 @@ fn unrequited_follows(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("Follows {following} people, followed by {followers}. Unrequited."),
+        format!(
+            "Follows {following} people, followed by {followers}. That's not networking, \
+             that's begging."
+        ),
         1,
     )
 }
@@ -223,14 +243,14 @@ fn unrequited_follows(p: &Profile) -> Option<Burn> {
 fn bio(p: &Profile) -> Option<Burn> {
     let Some(bio) = p.user.bio.as_deref().filter(|b| !b.trim().is_empty()) else {
         return burn(
-            "No bio. Letting the code speak. The code is quiet.".into(),
+            "No bio. Even your own profile has nothing to say about you.".into(),
             1,
         );
     };
     let lower = bio.to_lowercase();
     let word = BUZZWORDS.iter().find(|w| lower.contains(*w))?;
     burn(
-        format!("Bio says \"{word}\". So does every LinkedIn headline on earth."),
+        format!("Bio says \"{word}\". The repos below would like a word."),
         1,
     )
 }
@@ -250,7 +270,10 @@ fn one_language(p: &Profile) -> Option<Burn> {
     let pct = count * 100 / langs.len();
     if *top == "HTML" && pct >= 50 {
         return burn(
-            format!("Top language: HTML ({pct}%). Bold to call that a language."),
+            format!(
+                "Top language: HTML ({pct}%). Calling yourself a programmer is doing a lot of \
+                 heavy lifting."
+            ),
             1,
         );
     }
@@ -258,7 +281,7 @@ fn one_language(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("{pct}% {top}. Have you heard there are other languages?"),
+        format!("{pct}% {top}. A one-trick pony, and the trick is mid."),
         1,
     )
 }
@@ -270,7 +293,70 @@ fn slow_starter(p: &Profile) -> Option<Burn> {
         return None;
     }
     burn(
-        format!("{years} years on GitHub, {own} repos. Pacing yourself, I see."),
+        format!("{years} years on GitHub, {own} repos. Glaciers ship faster."),
+        1,
+    )
+}
+
+fn empty_repos(p: &Profile) -> Option<Burn> {
+    let is_empty = |r: &&Repo| r.size == 0;
+    let count = p.own_repos().filter(is_empty).count();
+    if count == 0 {
+        return None;
+    }
+    let names = examples(p.own_repos().filter(is_empty));
+    burn(
+        format!(
+            "{count} completely empty repos ({names}). You made a folder and called it a project."
+        ),
+        2,
+    )
+}
+
+fn final_final_v2(p: &Profile) -> Option<Burn> {
+    let panicked = |r: &&Repo| {
+        r.name
+            .to_lowercase()
+            .split(['-', '_', '.'])
+            .any(|part| PANIC_WORDS.contains(&part))
+    };
+    if p.own_repos().filter(panicked).next().is_none() {
+        return None;
+    }
+    let names = examples(p.own_repos().filter(panicked));
+    burn(
+        format!(
+            "Repos named {names}. Somewhere out there is a 'final-final-v3' and we're all scared."
+        ),
+        1,
+    )
+}
+
+fn dormant(p: &Profile) -> Option<Burn> {
+    let days = p
+        .own_repos()
+        .filter_map(|r| r.pushed_at.as_deref().and_then(|t| p.days_since(t)))
+        .min()?;
+    if days <= 180 {
+        return None;
+    }
+    burn(
+        format!("Last push was {days} days ago. The green squares miss you. Nobody else does."),
+        2,
+    )
+}
+
+fn follower_drought(p: &Profile) -> Option<Burn> {
+    let years = p.days_since(&p.user.created_at)? / 365;
+    let followers = p.user.followers;
+    if years < 2 || followers >= 10 {
+        return None;
+    }
+    burn(
+        format!(
+            "{years} years on GitHub and {followers} followers. Your repos have more bugs \
+             than you have fans."
+        ),
         1,
     )
 }
@@ -301,6 +387,7 @@ mod tests {
             fork: false,
             stargazers_count: 5,
             pushed_at: Some("2026-10-01T00:00:00Z".into()),
+            size: 10,
         }
     }
 
@@ -448,5 +535,43 @@ mod tests {
         }
         let v = judge(&profile(u, repos));
         assert_eq!(v.score, 1);
+    }
+
+    #[test]
+    fn spots_empty_repos() {
+        let mut repos = vec![repo("a"), repo("b")];
+        repos[0].size = 0;
+        assert!(mentions(
+            &profile(user(), repos),
+            "1 completely empty repos (a)"
+        ));
+    }
+
+    #[test]
+    fn spots_final_final_v2_but_not_words_containing_old() {
+        let p = profile(
+            user(),
+            vec![repo("app-final"), repo("Site_V2"), repo("golden")],
+        );
+        assert!(mentions(&p, "Repos named app-final and Site_V2."));
+    }
+
+    #[test]
+    fn spots_a_dormant_account() {
+        let mut r = repo("a");
+        r.pushed_at = Some("2026-01-01T00:00:00Z".into());
+        assert!(mentions(
+            &profile(user(), vec![r]),
+            "Last push was 282 days ago"
+        ));
+    }
+
+    #[test]
+    fn spots_a_follower_drought() {
+        let mut u = user();
+        u.created_at = "2020-01-01T00:00:00Z".into();
+        u.followers = 3;
+        let p = profile(u, (0..6).map(|i| repo(&format!("r{i}"))).collect());
+        assert!(mentions(&p, "6 years on GitHub and 3 followers"));
     }
 }

@@ -7,11 +7,11 @@ $ gitroast torvalds
 
 Roasting Linus Torvalds (@torvalds)
 
-  🔥 No bio. Letting the code speak. The code is quiet.
-  🔥 88% C. Have you heard there are other languages?
+  🔥 No bio. Even your own profile has nothing to say about you.
+  🔥 88% C. A one-trick pony, and the trick is mid.
 
   Score: ████████░░ 8/10
-  Decent. A few skeletons in the repo closet.
+  Decent. That's the nicest insult I have.
 ```
 
 ## What it judges
@@ -29,6 +29,10 @@ Roasting Linus Torvalds (@torvalds)
 | Bio | no bio, or buzzwords like "passionate" or "aspiring" |
 | One language | 80%+ of repos in one language (50%+ if it's HTML) |
 | Slow starter | 3+ years on GitHub, under 5 repos |
+| Empty repos | any repo with nothing ever pushed to it |
+| Final-final-v2 | repo names with `final`, `v2`, `copy`, `backup`, `old`… |
+| Dormant | no push to any repo for 6 months |
+| Follower drought | 2+ years on GitHub, under 10 followers |
 
 Every profile starts at 10. Each roast costs 1–5 points; the score never goes below 1.
 

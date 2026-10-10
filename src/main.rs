@@ -79,7 +79,7 @@ fn print_verdict(profile: &profile::Profile, verdict: &roast::Verdict) {
     if verdict.burns.is_empty() {
         println!(
             "  {}",
-            paint("32", "Nothing to roast. Suspicious, but fine.")
+            paint("32", "Nothing to roast. Suspicious. What are you hiding?")
         );
     }
     for burn in &verdict.burns {
