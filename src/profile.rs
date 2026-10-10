@@ -10,7 +10,6 @@ pub struct User {
     pub bio: Option<String>,
     pub followers: u32,
     pub following: u32,
-    pub public_repos: u32,
     pub created_at: String,
 }
 

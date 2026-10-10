@@ -3,6 +3,8 @@
 use crate::profile::{Repo, User};
 use serde::de::DeserializeOwned;
 use std::fmt;
+use std::time::Duration;
+use ureq::Agent;
 
 const API: &str = "https://api.github.com";
 /// 3 pages of 100 is plenty to judge someone, and keeps us well inside the rate limit.
@@ -30,6 +32,7 @@ impl fmt::Display for FetchError {
 }
 
 pub struct Client {
+    agent: Agent,
     token: Option<String>,
 }
 
@@ -37,7 +40,13 @@ impl Client {
     /// Uses `GITHUB_TOKEN` from the environment if it is set.
     pub fn from_env() -> Self {
         let token = std::env::var("GITHUB_TOKEN").ok().filter(|t| !t.is_empty());
-        Client { token }
+        // Without timeouts, a network with broken IPv6 hangs forever on the first address.
+        let agent: Agent = Agent::config_builder()
+            .timeout_connect(Some(Duration::from_secs(3)))
+            .timeout_global(Some(Duration::from_secs(20)))
+            .build()
+            .into();
+        Client { agent, token }
     }
 
     pub fn user(&self, name: &str) -> Result<User, FetchError> {
@@ -59,7 +68,9 @@ impl Client {
     }
 
     fn get<T: DeserializeOwned>(&self, url: &str, name: &str) -> Result<T, FetchError> {
-        let mut request = ureq::get(url)
+        let mut request = self
+            .agent
+            .get(url)
             .header("User-Agent", "gitroast")
             .header("Accept", "application/vnd.github+json");
         if let Some(token) = &self.token {
