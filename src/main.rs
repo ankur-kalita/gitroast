@@ -1,3 +1,4 @@
+mod github;
 mod profile;
 mod roast;
 
