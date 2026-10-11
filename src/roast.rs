@@ -131,11 +131,7 @@ fn missing_descriptions(p: &Profile) -> Option<Burn> {
     let total = p.own_repos().count();
     let empty = p
         .own_repos()
-        .filter(|r| {
-            r.description
-                .as_deref()
-                .map_or(true, |d| d.trim().is_empty())
-        })
+        .filter(|r| r.description.as_deref().is_none_or(|d| d.trim().is_empty()))
         .count();
     if total < 3 || empty * 2 < total {
         return None;
@@ -167,9 +163,7 @@ fn tutorial_projects(p: &Profile) -> Option<Burn> {
 
 fn lazy_names(p: &Profile) -> Option<Burn> {
     let is_lazy = |r: &&Repo| LAZY_NAMES.contains(&r.name.to_lowercase().as_str());
-    if p.own_repos().filter(is_lazy).next().is_none() {
-        return None;
-    }
+    p.own_repos().find(is_lazy)?;
     let names = examples(p.own_repos().filter(is_lazy));
     burn(
         format!("Repos named {names}. Your creativity peaked at the signup page."),
@@ -320,9 +314,7 @@ fn final_final_v2(p: &Profile) -> Option<Burn> {
             .split(['-', '_', '.'])
             .any(|part| PANIC_WORDS.contains(&part))
     };
-    if p.own_repos().filter(panicked).next().is_none() {
-        return None;
-    }
+    p.own_repos().find(panicked)?;
     let names = examples(p.own_repos().filter(panicked));
     burn(
         format!(
