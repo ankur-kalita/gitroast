@@ -1,0 +1,13 @@
+{{- if .Values.monitoring.enabled }}
+# Grafana's sidecar loads any ConfigMap with this label as a dashboard.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-dashboard
+  labels:
+    {{- include "gitroast.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  gitroast.json: |-
+    {{- .Files.Get "dashboards/gitroast.json" | nindent 4 }}
+{{- end }}

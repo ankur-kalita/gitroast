@@ -1,0 +1,34 @@
+{{- if .Values.monitoring.enabled }}
+# Symptom-based alerts: what a user would notice, not internal causes.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "gitroast.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: gitroast
+      rules:
+        - alert: GitroastHighErrorRate
+          expr: |
+            sum(rate(gitroast_http_requests_total{namespace="{{ .Release.Namespace }}",route="/roast",status=~"5.."}[5m]))
+              /
+            sum(rate(gitroast_http_requests_total{namespace="{{ .Release.Namespace }}",route="/roast"}[5m]))
+              > {{ .Values.monitoring.errorRateThreshold }}
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "More than {{ mulf .Values.monitoring.errorRateThreshold 100 }}% of roasts are failing"
+            description: "Check gitroast_github_fetches_total by outcome: rate_limited means add or fix GITHUB_TOKEN; error means GitHub is unreachable."
+        - alert: GitroastNoReadyPods
+          expr: |
+            kube_deployment_status_replicas_available{namespace="{{ .Release.Namespace }}",deployment="{{ .Release.Name }}"} < 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "gitroast has no ready pods"
+            description: "kubectl -n {{ .Release.Namespace }} get pods; check events and logs, or helm rollback."
+{{- end }}

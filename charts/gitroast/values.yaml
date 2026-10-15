@@ -29,3 +29,10 @@ resources:
 rollingUpdate:
   maxSurge: 1
   maxUnavailable: 0
+
+# Needs kube-prometheus-stack installed first (see deploy/monitoring-values.yaml).
+# Adds a ServiceMonitor, alert rules and a Grafana dashboard.
+monitoring:
+  enabled: false
+  # Alert when more than this share of roast requests fail (5xx) for 5 minutes.
+  errorRateThreshold: 0.05

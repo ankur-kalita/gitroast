@@ -1,0 +1,21 @@
+# Values for prometheus-community/kube-prometheus-stack on a local kind cluster.
+#   helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace -f deploy/monitoring-values.yaml
+
+# No one to page on a laptop; alerts are visible in the Prometheus UI.
+alertmanager:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 15s
+    # Pick up ServiceMonitors and PrometheusRules from any Helm release,
+    # not only ones labelled for this one.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+grafana:
+  sidecar:
+    dashboards:
+      # Load dashboards from ConfigMaps in every namespace (ours is in gitroast).
+      searchNamespace: ALL
