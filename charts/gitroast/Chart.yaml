@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gitroast
+description: Judges a GitHub profile over HTTP. Harshly.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

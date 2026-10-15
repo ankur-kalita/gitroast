@@ -1,0 +1,31 @@
+# Every setting the chart takes, with defaults for a local kind cluster.
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/ankur-kalita/gitroast
+  # The full commit SHA of the build to run. CI publishes one image per push;
+  # deploy a new one with: helm upgrade ... --set image.tag=<sha>
+  tag: d250e785ab67a004e936300f01171cad4a4579f8
+  pullPolicy: IfNotPresent
+
+# Name of a Secret holding GITHUB_TOKEN. Created with kubectl, never stored in
+# git. Optional: without it the app works at 60 GitHub requests/hour.
+githubTokenSecret: gitroast-github
+
+service:
+  port: 80
+
+containerPort: 8080
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    memory: 128Mi
+
+# Roll out one new pod at a time and never drop below the desired count.
+rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 0
