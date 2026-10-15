@@ -18,7 +18,7 @@ const CACHE_TTL: Duration = Duration::from_secs(600);
 const CACHE_MAX: usize = 1000;
 const WORKERS: usize = 8;
 
-#[derive(Serialize, Clone)]
+#[derive(Serialize)]
 struct RoastBody {
     login: String,
     name: Option<String>,
@@ -93,7 +93,8 @@ impl Metrics {
 
 struct App {
     client: github::Client,
-    cache: Mutex<HashMap<String, (Instant, RoastBody)>>,
+    /// Lowercase username -> (when, HTTP status, JSON body).
+    cache: Mutex<HashMap<String, (Instant, u16, String)>>,
     metrics: Metrics,
     ready: AtomicBool,
 }
@@ -218,14 +219,31 @@ fn roast_route(app: &App, username: &str) -> (u16, String) {
     }
     let key = username.to_ascii_lowercase();
 
-    if let Some((at, body)) = app.cache.lock().unwrap().get(&key)
+    if let Some((at, status, body)) = app.cache.lock().unwrap().get(&key)
         && at.elapsed() < CACHE_TTL
     {
         app.metrics.cache.with_label_values(&["hit"]).inc();
-        return (200, serde_json::to_string(body).unwrap());
+        return (*status, body.clone());
     }
     app.metrics.cache.with_label_values(&["miss"]).inc();
 
+    let (status, body) = fetch_and_judge(app, username);
+    // Cache "user not found" too, or every retry of a typo costs GitHub calls.
+    // Rate limits and network errors are not cached: they should be retried.
+    if matches!(status, 200 | 404) {
+        let mut cache = app.cache.lock().unwrap();
+        if cache.len() >= CACHE_MAX {
+            cache.retain(|_, (at, _, _)| at.elapsed() < CACHE_TTL);
+            if cache.len() >= CACHE_MAX {
+                cache.clear();
+            }
+        }
+        cache.insert(key, (Instant::now(), status, body.clone()));
+    }
+    (status, body)
+}
+
+fn fetch_and_judge(app: &App, username: &str) -> (u16, String) {
     let fetched = app
         .client
         .user(username)
@@ -259,15 +277,6 @@ fn roast_route(app: &App, username: &str) -> (u16, String) {
         summary: verdict.summary,
         burns: verdict.burns.into_iter().map(|b| b.text).collect(),
     };
-
-    let mut cache = app.cache.lock().unwrap();
-    if cache.len() >= CACHE_MAX {
-        cache.retain(|_, (at, _)| at.elapsed() < CACHE_TTL);
-        if cache.len() >= CACHE_MAX {
-            cache.clear();
-        }
-    }
-    cache.insert(key, (Instant::now(), body.clone()));
     (200, serde_json::to_string(&body).unwrap())
 }
 
