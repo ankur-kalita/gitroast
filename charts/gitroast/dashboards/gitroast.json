@@ -68,6 +68,24 @@
           "instant": true,
           "format": "table"
         }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "container": true,
+              "endpoint": true,
+              "job": true,
+              "service": true,
+              "Value": true,
+              "namespace": true
+            },
+            "renameByName": {}
+          }
+        }
       ]
     },
     {
@@ -114,7 +132,9 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
         },
         "overrides": []
       },
@@ -122,7 +142,7 @@
         {
           "refId": "A",
           "expr": "sum(rate(gitroast_http_requests_total{route=\"/roast\",status=~\"5..\"}[5m])) / sum(rate(gitroast_http_requests_total{route=\"/roast\"}[5m]))",
-          "legendFormat": ""
+          "legendFormat": "5xx share"
         }
       ]
     },
@@ -175,7 +195,9 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
         },
         "overrides": []
       },
@@ -183,7 +205,7 @@
         {
           "refId": "A",
           "expr": "sum(rate(gitroast_cache_lookups_total{result=\"hit\"}[5m])) / sum(rate(gitroast_cache_lookups_total[5m]))",
-          "legendFormat": ""
+          "legendFormat": "hit ratio"
         }
       ]
     },
