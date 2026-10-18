@@ -1,31 +1,57 @@
 mod github;
 mod profile;
 mod roast;
+mod server;
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use std::io::IsTerminal;
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Judges a GitHub profile. Harshly.
 #[derive(Parser)]
-#[command(version)]
+#[command(version, args_conflicts_with_subcommands = true)]
 struct Cli {
+    #[command(subcommand)]
+    command: Option<Command>,
+
     /// GitHub username to roast
-    username: String,
+    #[arg(required = true)]
+    username: Option<String>,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Serve roasts over HTTP, with health checks and Prometheus metrics
+    Serve {
+        /// Port to listen on
+        #[arg(long, env = "PORT", default_value_t = 8080)]
+        port: u16,
+    },
 }
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    if !is_valid_username(&cli.username) {
-        eprintln!("error: '{}' is not a valid GitHub username", cli.username);
+    if let Some(Command::Serve { port }) = cli.command {
+        return match server::run(port) {
+            Ok(()) => ExitCode::SUCCESS,
+            Err(e) => {
+                eprintln!("error: {e}");
+                ExitCode::from(1)
+            }
+        };
+    }
+
+    let username = cli.username.expect("clap requires a username");
+    if !is_valid_username(&username) {
+        eprintln!("error: '{username}' is not a valid GitHub username");
         return ExitCode::from(2);
     }
 
     let client = github::Client::from_env();
     let fetched = client
-        .user(&cli.username)
-        .and_then(|user| Ok((user, client.repos(&cli.username)?)));
+        .user(&username)
+        .and_then(|user| Ok((user, client.repos(&username)?)));
     let (user, repos) = match fetched {
         Ok(data) => data,
         Err(e) => {

@@ -1,0 +1,17 @@
+{{- if .Values.monitoring.enabled }}
+# Tells Prometheus to scrape /metrics on every gitroast pod behind the Service.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "gitroast.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "gitroast.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+{{- end }}
