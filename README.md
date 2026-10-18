@@ -88,6 +88,9 @@ The roast rules never go online, so `cargo test` checks them with fake profiles.
 
 ## Delivery and deployment
 
+Evidence that all of this works (command output, CI runs, rollout and
+rollback tests, dashboard, security checks): [`docs/evidence.md`](docs/evidence.md).
+
 ```
 git push ──► CI: fmt + clippy ─┐
                  cargo test  ──┴─► docker build ─► smoke test ─► Trivy ─► ghcr.io/ankur-kalita/gitroast:<sha>
