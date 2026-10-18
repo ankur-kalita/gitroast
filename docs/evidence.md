@@ -2,7 +2,9 @@
 
 Output captured from the running system on a local kind cluster. Captured on
 18 Oct 2026 unless marked otherwise. The cluster runs the image built by CI
-from the final commit `c717aab3b0a701b09f014ab46a9f78f5ca20ff79`.
+from `c717aab3b0a701b09f014ab46a9f78f5ca20ff79`, the last commit that changes
+the application. Later commits only change the dashboard and this file; the
+deployed chart includes the dashboard change (Helm revision 9).
 
 - [1. Working application](#1-working-application)
 - [2. Kubernetes setup](#2-kubernetes-setup)
